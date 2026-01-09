@@ -1,6 +1,3 @@
-
-export default App;
-
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
@@ -13,67 +10,75 @@ app.use(cors({
 }));
 app.use(bodyParser.json());
 
+let accounts = [
+    { id: 1, username: 'admin', email: 'admin@example.com' }
+];
+let nextId = 2;
 
-let items = ['hello world'];
-
-
-app.get('/api/data', (req, res) => {
-    res.json(items);
+app.get('/api/accounts', (req, res) => {
+    res.json(accounts);
 });
 
+app.post('/api/accounts', (req, res) => {
+    const { username, email } = req.body;
 
-app.post('/api/data', (req, res) => {
-    const { item } = req.body;
-
-    if (!item) {
-        return res.status(400).json({ message: 'Item is required' });
+    if (!username || !email) {
+        return res.status(400).json({ message: 'Username and email are required' });
     }
 
-    items.push(item);
+    const newAccount = {
+        id: nextId++,
+        username,
+        email
+    };
+
+    accounts.push(newAccount);
 
     res.status(201).json({
-        message: 'Item created successfully',
-        item
+        message: 'Account created successfully',
+        item: newAccount
     });
 });
 
 
-app.put('/api/data/:index', (req, res) => {
-    const index = parseInt(req.params.index);
-    const { item } = req.body;
+app.put('/api/accounts/:id', (req, res) => {
+    const id = parseInt(req.params.id);
+    const { username, email } = req.body;
 
-    if (index < 0 || index >= items.length) {
-        return res.status(404).json({ message: 'Item not found' });
+    const index = accounts.findIndex(a => a.id === id);
+
+    if (index === -1) {
+        return res.status(404).json({ message: 'Account not found' });
     }
 
-    items[index] = item;
+    accounts[index] = {
+        ...accounts[index],
+        username,
+        email
+    };
 
     res.status(200).json({
-        message: 'Item updated successfully',
-        item
+        message: 'Account updated successfully',
+        item: accounts[index]
     });
 });
 
+app.delete('/api/accounts/:id', (req, res) => {
+    const id = parseInt(req.params.id);
+    const index = accounts.findIndex(a => a.id === id);
 
-app.delete('/api/data/:index', (req, res) => {
-    const index = parseInt(req.params.index);
-
-    if (index < 0 || index >= items.length) {
-        return res.status(404).json({ message: 'Item not found' });
+    if (index === -1) {
+        return res.status(404).json({ message: 'Account not found' });
     }
 
-    const deletedItem = items.splice(index, 1);
+    const deletedAccount = accounts.splice(index, 1)[0];
 
     res.status(200).json({
-        message: 'Item deleted successfully',
-        item: deletedItem[0]
+        message: 'Account deleted successfully',
+        item: deletedAccount
     });
 });
 
 app.listen(PORT, () => {
     console.log(`Server started on port ${PORT}`);
 });
-
-
-
-
