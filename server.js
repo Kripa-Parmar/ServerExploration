@@ -65,10 +65,10 @@ app.delete('/users/:id', (req, res) => {
 
     users.splice(index, 1);
 
-    console.log('Remaining users:', JSON.stringify(users, null, 2));
+    console.log('Remaning users:', JSON.stringify(users, null, 2));
 
     res.json({
-        message: `Item with ID: ${deleteId} deleted successfully`,
+        message: `Item  ID: ${deleteId} deleted successfully`,
         remainingItems: users
     });
 });
