@@ -11,7 +11,7 @@ const port = 3000;
 let nextUserId = 0;
 
 let users = [
-    { id: 0, email: 'k@gmail.com', pass: '123456' }
+    { id: 0, email: 'kripaparma@gmail.com', pass: '123456' }
 ];
 
 app.get('/users/:id', (req, res) => {
