@@ -3,82 +3,76 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
-
-app.use(cors({
-    methods: ['GET', 'POST', 'PUT', 'DELETE']
-}));
+app.use(cors({ methods: ['GET', 'POST', 'PUT', 'DELETE'] }));
 app.use(bodyParser.json());
 
-let accounts = [
-    { id: 1, username: 'admin', email: 'admin@example.com' }
+const port = 3000;
+
+let nextUserId = 0;
+
+let users = [
+    { id: 0, email: 'k@gmail.com', pass: '123456' }
 ];
-let nextId = 2;
 
-app.get('/api/accounts', (req, res) => {
-    res.json(accounts);
+app.get('/users/:id', (req, res) => {
+    const id = parseInt(req.params.id);
+    const user = users.find(u => u.id === id);
+
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    res.json(user);
 });
 
-app.post('/api/accounts', (req, res) => {
-    const { username, email } = req.body;
+app.post('/users', (req, res) => {
+    const { email, pass } = req.body;
 
-    if (!username || !email) {
-        return res.status(400).json({ message: 'Username and email are required' });
+    if (!email || !pass) {
+        return res.status(400).json({ error: 'Please enter a valid email and password' });
     }
 
-    const newAccount = {
-        id: nextId++,
-        username,
-        email
+    const newUser = { id: nextUserId++, email, pass };
+    users.push(newUser);
+
+    console.log('User created:', JSON.stringify(newUser, null, 2));
+    res.status(201).json(newUser);
+});
+
+app.put('/users/:id', (req, res) => {
+    const userId = parseInt(req.params.id);
+    const { newEmail, newPass } = req.body;
+
+    const index = users.findIndex(u => u.id === userId);
+    if (index === -1) {
+        return res.status(404).json({ error: 'User not found' });
+    }
+
+    users[index] = {
+        id: userId,
+        email: newEmail,
+        pass: newPass
     };
 
-    accounts.push(newAccount);
-
-    res.status(201).json({
-        message: 'Account created successfully',
-        item: newAccount
-    });
+    console.log('User updated:', JSON.stringify(users[index], null, 2));
+    res.json(users[index]);
 });
 
+app.delete('/users/:id', (req, res) => {
+    const deleteId = parseInt(req.params.id);
 
-app.put('/api/accounts/:id', (req, res) => {
-    const id = parseInt(req.params.id);
-    const { username, email } = req.body;
-
-    const index = accounts.findIndex(a => a.id === id);
-
+    const index = users.findIndex(u => u.id === deleteId);
     if (index === -1) {
-        return res.status(404).json({ message: 'Account not found' });
+        return res.status(404).json({ message: 'User not found' });
     }
 
-    accounts[index] = {
-        ...accounts[index],
-        username,
-        email
-    };
+    users.splice(index, 1);
 
-    res.status(200).json({
-        message: 'Account updated successfully',
-        item: accounts[index]
+    console.log('Remaining users:', JSON.stringify(users, null, 2));
+
+    res.json({
+        message: `Item with ID: ${deleteId} deleted successfully`,
+        remainingItems: users
     });
 });
 
-app.delete('/api/accounts/:id', (req, res) => {
-    const id = parseInt(req.params.id);
-    const index = accounts.findIndex(a => a.id === id);
-
-    if (index === -1) {
-        return res.status(404).json({ message: 'Account not found' });
-    }
-
-    const deletedAccount = accounts.splice(index, 1)[0];
-
-    res.status(200).json({
-        message: 'Account deleted successfully',
-        item: deletedAccount
-    });
-});
-
-app.listen(PORT, () => {
-    console.log(`Server started on port ${PORT}`);
+app.listen(port, () => {
+    console.log(`Server started on port ${port}`);
 });
